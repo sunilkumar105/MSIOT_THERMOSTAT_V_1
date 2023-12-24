@@ -1,27 +1,30 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "utility.h"
+#include "lcd.h"
+#include "AHT21.h"
+#include "MY_NRF24.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,7 +67,8 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint8_t r;
+extern bool current_power_status;
 /* USER CODE END 0 */
 
 /**
@@ -100,17 +104,36 @@ int main(void)
   MX_SPI2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+	__HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+//	NRF_init_as_thermo_node();
+//	thermostat_display_initial_setup();
+	HAL_GPIO_WritePin(RELAY_FAN_1_GPIO_Port, RELAY_FAN_1_Pin, GPIO_PIN_SET);
+	HAL_Delay(1000);
+	HAL_GPIO_WritePin(RELAY_FAN_2_GPIO_Port, RELAY_FAN_2_Pin, GPIO_PIN_SET);
+	HAL_Delay(1000);
+	HAL_GPIO_WritePin(RELAY_FAN_3_GPIO_Port, RELAY_FAN_3_Pin, GPIO_PIN_SET);
+	HAL_Delay(1000);
+	HAL_GPIO_WritePin(RELAY_COMPRESSOR_GPIO_Port, RELAY_COMPRESSOR_Pin,
+			GPIO_PIN_SET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	while (1) {
+//		update_dwin_lcd();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+		//THERMOSTAT CODE
+//		if (current_power_status == power_status_on) {
+//			adjust_temperature();
+//			if (NRF24_available()) {
+//				Manage_NRF_Data();
+//			}
+//		}
+		HAL_GPIO_TogglePin(LED_HEALTH_PIN_GPIO_Port, LED_HEALTH_PIN_Pin);
+		HAL_Delay(100);
+	}
   /* USER CODE END 3 */
 }
 
@@ -346,7 +369,10 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	dwinRx(r);
+//	HAL_GPIO_TogglePin(LED_HEALTH_PIN_GPIO_Port, LED_HEALTH_PIN_Pin);
+}
 /* USER CODE END 4 */
 
 /**
@@ -356,11 +382,10 @@ static void MX_GPIO_Init(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1) {
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 
